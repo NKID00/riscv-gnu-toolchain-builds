@@ -1,0 +1,48 @@
+name: Build
+on:
+  schedule:
+    - cron: '2 2 * * 2'
+  workflow_dispatch:
+jobs:
+  build-linux:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        repository: riscv-collab/riscv-gnu-toolchain
+    - name: Install deps
+      run: sudo apt install autoconf automake autotools-dev curl python3 libmpc-dev libmpfr-dev libgmp-dev gawk build-essential bison flex texinfo gperf libtool patchutils bc zlib1g-dev libexpat-dev
+    - name: Run configure
+      run: ./configure --prefix=$(realpath ~/build-riscv-gnu-toolchain) --enable-multilib
+    - name: Run make
+      run: make -j$(nproc -all)
+    - name: Compress artifacts
+      run: tar -c -I 'xz -9 -T0' -f riscv-gnu-toolchain-linux.tar.xz ~/build-riscv-gnu-toolchain/
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2.2.4
+      with:
+        path: riscv-gnu-toolchain-linux.tar.xz
+
+  # build-windows:
+  #   runs-on: windows-2019
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #     with:
+  #       repository: riscv-collab/riscv-gnu-toolchain
+  #   - uses: msys2/setup-msys2@v2
+  #     with:
+  #       update: true
+  #       install: autoconf automake autotools-dev curl python3 libmpc-dev libmpfr-dev libgmp-dev gawk build-essential bison flex texinfo gperf libtool patchutils bc zlib1g-dev libexpat-dev
+  #   - name: Run configure
+  #     shell: msys2 {0}
+  #     run: ./configure --prefix=$(realpath ~/build-riscv-gnu-toolchain) --enable-multilib
+  #   - name: Run make
+  #     shell: msys2 {0}
+  #     run: make -j$(nproc -all)
+  #   - name: Compress artifacts
+  #     shell: msys2 {0}
+  #     run: tar -c -I 'xz -9 -T0' -f riscv-gnu-toolchain-linux.tar.xz ~/build-riscv-gnu-toolchain/
+  #   - name: Upload artifacts
+  #     uses: actions/upload-artifact@v2.2.4
+  #     with:
+  #       path: riscv-gnu-toolchain-linux.tar.xz
