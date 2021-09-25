@@ -64,11 +64,11 @@ jobs:
     - name: Strip executables
       run: sudo find /opt/riscv/ -executable -type f -exec x86_64-w64-mingw32-strip {} \;
     - name: Compress artifacts
-      run: sudo tar -c -I 'xz -9 -T0' -f riscv-gnu-toolchain-windows.tar.xz /opt/riscv/
+      run: sudo zip -9 -r riscv-gnu-toolchain-windows.zip /opt/riscv/
     - name: Upload artifacts
       uses: actions/upload-artifact@v2.2.4
       with:
-        path: riscv-gnu-toolchain-windows.tar.xz
+        path: riscv-gnu-toolchain-windows.zip
   
   release:
     needs: [build-linux, build-windows]
