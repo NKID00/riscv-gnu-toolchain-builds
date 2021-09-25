@@ -17,7 +17,7 @@ jobs:
     - name: Run make
       run: sudo make -j$(nproc --all)
     - name: Strip executables
-      run: sudo find /opt/riscv/ -executable -type f -exec strip {} ;
+      run: sudo find /opt/riscv/ -executable -type f -exec strip {} \;
     - name: Compress artifacts
       run: sudo tar -c -I 'xz -9 -T0' -f riscv-gnu-toolchain-linux.tar.xz /opt/riscv/
     - name: Upload artifacts
@@ -62,7 +62,7 @@ jobs:
     - name: Run make
       run: sudo make -j$(nproc --all)
     - name: Strip executables
-      run: sudo find /opt/riscv/ -executable -type f -exec x86_64-w64-mingw32-strip {} ;
+      run: sudo find /opt/riscv/ -executable -type f -exec x86_64-w64-mingw32-strip {} \;
     - name: Compress artifacts
       run: sudo tar -c -I 'xz -9 -T0' -f riscv-gnu-toolchain-windows.tar.xz /opt/riscv/
     - name: Upload artifacts
