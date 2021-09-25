@@ -25,23 +25,47 @@ jobs:
       with:
         path: riscv-gnu-toolchain-linux.tar.xz
 
-  # build-windows:
-  #   runs-on: ubuntu-20.04
-  #   steps:
-  #   - uses: actions/checkout@v2
-  #     with:
-  #       repository: riscv-collab/riscv-gnu-toolchain
-  #   - name: Install deps
-  #     run: sudo apt install mingw-w64 autoconf automake autotools-dev curl python3 libmpc-dev libmpfr-dev libgmp-dev gawk build-essential bison flex texinfo gperf libtool patchutils bc zlib1g-dev libexpat-dev
-  #   - name: Run configure
-  #     run: sudo ./configure --host=x86_64-w64-mingw32 --prefix=/opt/riscv/ --enable-multilib
-  #   - name: Run make
-  #     run: sudo make -j$(nproc --all)
-  #   - name: Strip executables
-  #     run: sudo find /opt/riscv/ -executable -type f -exec strip {} ;
-  #   - name: Compress artifacts
-  #     run: sudo tar -c -I 'xz -9 -T0' -f riscv-gnu-toolchain-windows.tar.xz /opt/riscv/
-  #   - name: Upload artifacts
-  #     uses: actions/upload-artifact@v2.2.4
-  #     with:
-  #       path: riscv-gnu-toolchain-windows.tar.xz
+  build-windows:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        repository: riscv-collab/riscv-gnu-toolchain
+    - name: Install deps
+      run: sudo apt install mingw-w64 autoconf automake autotools-dev curl python3 libmpc-dev libmpfr-dev libgmp-dev gawk build-essential bison flex texinfo gperf libtool patchutils bc zlib1g-dev libexpat-dev
+    - name: 'Install dep: gmp'
+      run: |
+        wget -O gmp-6.1.2-2-mingw32-src.tar.xz https://sourceforge.net/projects/mingw/files/MinGW/Base/gmp/gmp-6.1.2/gmp-6.1.2-2-mingw32-src.tar.xz/download
+        tar -xf gmp-6.1.2-2-mingw32-src.tar.xz
+        cd gmp-6.1.2
+        ./configure --prefix=/usr/x86_64-w64-mingw32 --host=x86_64-w64-mingw32
+        make -j$(nproc --all)
+        sudo make -j$(nproc --all) install
+    - name: 'Install dep: mpfr'
+      run: |
+        wget -O mpfr-3.1.5-2-mingw32-src.tar.xz https://sourceforge.net/projects/mingw/files/MinGW/Base/mpfr/mpfr-3.1.5/mpfr-3.1.5-2-mingw32-src.tar.xz/download
+        tar -xf mpfr-3.1.5-2-mingw32-src.tar.xz
+        cd mpfr-3.1.5
+        ./configure --prefix=/usr/x86_64-w64-mingw32 --host=x86_64-w64-mingw32 --enable-static --disable-shared
+        make -j$(nproc --all)
+        sudo make -j$(nproc --all) install
+    - name: 'Install dep: mpc'
+      run: |
+        wget -O mpc-1.0.3-1-mingw32-src.tar.xz https://sourceforge.net/projects/mingw/files/MinGW/Base/mpc/mpc-1.0.3/mpc-1.0.3-1-mingw32-src.tar.xz/download
+        tar -xf mpc-1.0.3-1-mingw32-src.tar.xz
+        cd mpc-1.0.3
+        ./configure --prefix=/usr/x86_64-w64-mingw32 --host=x86_64-w64-mingw32 --enable-static --disable-shared
+        make -j$(nproc --all)
+        sudo make -j$(nproc --all) install
+    - name: Run configure
+      run: sudo ./configure --host=x86_64-w64-mingw32 --prefix=/opt/riscv/ --enable-multilib
+    - name: Run make
+      run: sudo make -j$(nproc --all)
+    - name: Strip executables
+      run: sudo find /opt/riscv/ -executable -type f -exec x86_64-w64-mingw32-strip {} ;
+    - name: Compress artifacts
+      run: sudo tar -c -I 'xz -9 -T0' -f riscv-gnu-toolchain-windows.tar.xz /opt/riscv/
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2.2.4
+      with:
+        path: riscv-gnu-toolchain-windows.tar.xz
