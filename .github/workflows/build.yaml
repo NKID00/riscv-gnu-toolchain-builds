@@ -17,7 +17,7 @@ jobs:
     - name: Run make
       run: sudo make -j$(nproc --all)
     - name: Test executables
-      run: /opt/riscv/riscv64-unknown-elf-gcc -v --version
+      run: /opt/riscv/bin/riscv64-unknown-elf-gcc -v --version
     - name: Get commit hash
       run: echo "COMMIT_HASH=$(git log -1 --pretty='%h')" >> $GITHUB_ENV
     - name: Archive and compress debug executables
@@ -68,7 +68,7 @@ jobs:
         make -j$(nproc --all)
         sudo make -j$(nproc --all) install
     - name: Run configure
-      run: sudo ./configure --host=x86_64-w64-mingw32 --prefix=/opt/riscv/ --enable-multilib
+      run: sudo ./configure --host=x86_64-w64-mingw32 --prefix=/opt/riscv/ --enable-multilib --without-system-zlib
     - name: Run make
       run: sudo make -j$(nproc --all)
     - name: Get commit hash
