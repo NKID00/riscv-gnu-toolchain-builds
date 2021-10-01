@@ -42,7 +42,7 @@ jobs:
       with:
         repository: riscv-collab/riscv-gnu-toolchain
     - name: Install deps
-      run: sudo apt install mingw-w64 autoconf automake autotools-dev curl python3 libmpc-dev libmpfr-dev libgmp-dev gawk build-essential bison flex texinfo gperf libtool patchutils bc zlib1g-dev libexpat-dev
+      run: sudo apt install mingw-w64 wine64 autoconf automake autotools-dev curl python3 libmpc-dev libmpfr-dev libgmp-dev gawk build-essential bison flex texinfo gperf libtool patchutils bc zlib1g-dev libexpat-dev
     - name: 'Install dep: gmp'
       run: |
         wget -O gmp-6.1.2-2-mingw32-src.tar.xz https://sourceforge.net/projects/mingw/files/MinGW/Base/gmp/gmp-6.1.2/gmp-6.1.2-2-mingw32-src.tar.xz/download
@@ -50,6 +50,7 @@ jobs:
         cd gmp-6.1.2
         ./configure --prefix=/usr/x86_64-w64-mingw32 --host=x86_64-w64-mingw32
         make -j$(nproc --all)
+        make check TESTS_ENVIRONMENT=wine64  # required by gmp
         sudo make -j$(nproc --all) install
     - name: 'Install dep: mpfr'
       run: |
