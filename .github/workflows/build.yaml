@@ -1,4 +1,4 @@
-name: Build and release riscv-gnu-toolchain
+name: Build and release
 on:
   schedule:
     - cron: '2 2 * * 2'
@@ -36,42 +36,26 @@ jobs:
         path: ~/riscv-*-newlib-multilib*.tar.xz
 
   build-windows:
-    runs-on: ubuntu-20.04
+    runs-on: windows-2019
+    defaults:
+      run:
+        shell: msys2 {0}
     steps:
     - uses: actions/checkout@v2
       with:
         repository: riscv-collab/riscv-gnu-toolchain
-    - name: Install deps
-      run: sudo apt install mingw-w64 wine64 autoconf automake autotools-dev curl python3 libmpc-dev libmpfr-dev libgmp-dev gawk build-essential bison flex texinfo gperf libtool patchutils bc zlib1g-dev libexpat-dev
-    - name: 'Install dep: gmp'
-      run: |
-        wget -O gmp-6.1.2-2-mingw32-src.tar.xz https://sourceforge.net/projects/mingw/files/MinGW/Base/gmp/gmp-6.1.2/gmp-6.1.2-2-mingw32-src.tar.xz/download
-        tar -xf gmp-6.1.2-2-mingw32-src.tar.xz
-        cd gmp-6.1.2
-        ./configure --prefix=/usr/x86_64-w64-mingw32 --host=x86_64-w64-mingw32
-        make -j$(nproc --all)
-        make check TESTS_ENVIRONMENT=wine64  # required by gmp
-        sudo make -j$(nproc --all) install
-    - name: 'Install dep: mpfr'
-      run: |
-        wget -O mpfr-3.1.5-2-mingw32-src.tar.xz https://sourceforge.net/projects/mingw/files/MinGW/Base/mpfr/mpfr-3.1.5/mpfr-3.1.5-2-mingw32-src.tar.xz/download
-        tar -xf mpfr-3.1.5-2-mingw32-src.tar.xz
-        cd mpfr-3.1.5
-        ./configure --prefix=/usr/x86_64-w64-mingw32 --host=x86_64-w64-mingw32 --enable-static --disable-shared
-        make -j$(nproc --all)
-        sudo make -j$(nproc --all) install
-    - name: 'Install dep: mpc'
-      run: |
-        wget -O mpc-1.0.3-1-mingw32-src.tar.xz https://sourceforge.net/projects/mingw/files/MinGW/Base/mpc/mpc-1.0.3/mpc-1.0.3-1-mingw32-src.tar.xz/download
-        tar -xf mpc-1.0.3-1-mingw32-src.tar.xz
-        cd mpc-1.0.3
-        ./configure --prefix=/usr/x86_64-w64-mingw32 --host=x86_64-w64-mingw32 --enable-static --disable-shared
-        make -j$(nproc --all)
-        sudo make -j$(nproc --all) install
+    - name: Install MSYS2 and deps
+      uses: msys2/setup-msys2@v2
+      with:
+        update: true
+        msystem: MINGW64
+        install: >-
+          mingw-w64-x86_64-toolchain
+          base-devel
     - name: Run configure
-      run: sudo ./configure --host=x86_64-w64-mingw32 --prefix=/opt/riscv/ --enable-multilib --without-system-zlib
+      run: ./configure --prefix=/opt/riscv/ --enable-multilib
     - name: Run make
-      run: sudo make -j$(nproc --all)
+      run: make -j$(nproc --all)
     - name: Get commit hash
       run: echo "COMMIT_HASH=$(git log -1 --pretty='%h')" >> $GITHUB_ENV
     - name: Archive and compress debug executables
@@ -79,11 +63,12 @@ jobs:
         cd /opt/
         zip -9 -r ${{ format('~/riscv-{0}-newlib-multilib-windows-debug.zip', env.COMMIT_HASH) }} riscv/
     - name: Strip executables
-      run: sudo find /opt/riscv/ -executable -type f -exec x86_64-w64-mingw32-strip {} \;
+      run: find /opt/riscv/ -executable -type f -exec strip {} \;
     - name: Archive and compress executables
       run: |
         cd /opt/
         zip -9 -r ${{ format('~/riscv-{0}-newlib-multilib-windows.zip', env.COMMIT_HASH) }} riscv/
+        realpath ${{ format('~/riscv-{0}-newlib-multilib-windows.zip', env.COMMIT_HASH) }}
     - name: Upload artifacts
       uses: actions/upload-artifact@v2.2.4
       with:
@@ -104,7 +89,6 @@ jobs:
         body: |
           ${{ format('Auto-build #{1} at {0} UTC.', env.DATE, github.run_number) }}
           Builds contain debug symbols are named `*-debug`.
-          **Windows-targetting builds are currently broken.**
         tag_name: auto-build-release
         files: |
           ~/artifact/riscv-*-newlib-multilib.tar.xz
