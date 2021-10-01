@@ -16,14 +16,24 @@ jobs:
       run: sudo ./configure --prefix=/opt/riscv/ --enable-multilib
     - name: Run make
       run: sudo make -j$(nproc --all)
+    - name: Test executables
+      run: /opt/riscv/riscv64-unknown-elf-gcc -v --version
+    - name: Get commit hash
+      run: echo "COMMIT_HASH=$(git log -1 --pretty='%h')" >> $GITHUB_ENV
+    - name: Archive and compress debug executables
+      run: |
+        cd /opt/
+        tar -c -I 'xz -9 -T0' -f ${{ format('~/riscv-{0}-newlib-multilib-debug.tar.xz', env.COMMIT_HASH) }} riscv/
     - name: Strip executables
       run: sudo find /opt/riscv/ -executable -type f -exec strip {} \;
-    - name: Compress artifacts
-      run: sudo tar -c -I 'xz -9 -T0' -f riscv-gnu-toolchain-linux.tar.xz /opt/riscv/
+    - name: Archive and compress executables
+      run: |
+        cd /opt/
+        tar -c -I 'xz -9 -T0' -f ${{ format('~/riscv-{0}-newlib-multilib.tar.xz', env.COMMIT_HASH) }} riscv/
     - name: Upload artifacts
       uses: actions/upload-artifact@v2.2.4
       with:
-        path: riscv-gnu-toolchain-linux.tar.xz
+        path: ~/riscv-*-newlib-multilib*.tar.xz
 
   build-windows:
     runs-on: ubuntu-20.04
@@ -61,25 +71,38 @@ jobs:
       run: sudo ./configure --host=x86_64-w64-mingw32 --prefix=/opt/riscv/ --enable-multilib
     - name: Run make
       run: sudo make -j$(nproc --all)
+    - name: Get commit hash
+      run: echo "COMMIT_HASH=$(git log -1 --pretty='%h')" >> $GITHUB_ENV
+    - name: Archive and compress debug executables
+      run: |
+        cd /opt/
+        zip -9 -r ${{ format('~/riscv-{0}-newlib-multilib-windows-debug.zip', env.COMMIT_HASH) }} riscv/
     - name: Strip executables
       run: sudo find /opt/riscv/ -executable -type f -exec x86_64-w64-mingw32-strip {} \;
-    - name: Compress artifacts
-      run: sudo zip -9 -r riscv-gnu-toolchain-windows.zip /opt/riscv/
+    - name: Archive and compress executables
+      run: |
+        cd /opt/
+        zip -9 -r ${{ format('~/riscv-{0}-newlib-multilib-windows.zip', env.COMMIT_HASH) }} riscv/
     - name: Upload artifacts
       uses: actions/upload-artifact@v2.2.4
       with:
-        path: riscv-gnu-toolchain-windows.zip
+        path: ~/riscv-*-newlib-multilib-windows*.zip
   
   release:
     needs: [build-linux, build-windows]
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/download-artifact@v2.0.10
-    - run: echo "DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
+      with:
+        path: ~/
+    - name: Get date string
+      run: echo "DATE=$(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_ENV
     - uses: softprops/action-gh-release@v0.1.13
       with:
         name: ${{ format('{0} build {1}', env.DATE, github.run_number) }}
         tag_name: auto-build-release
         files: |
-            riscv-gnu-toolchain-linux.tar.xz
-            riscv-gnu-toolchain-windows.tar.xz
+          ~/riscv-*-newlib-multilib.tar.xz
+          ~/riscv-*-newlib-multilib-debug.tar.xz
+          ~/riscv-*-newlib-multilib-windows.zip
+          ~/riscv-*-newlib-multilib-windows-debug.zip
