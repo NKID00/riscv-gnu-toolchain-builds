@@ -97,13 +97,17 @@ jobs:
       with:
         path: ~/
     - name: Get date string
-      run: echo "DATE=$(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_ENV
+      run: echo "DATE=$(date -u +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_ENV
     - uses: softprops/action-gh-release@v0.1.13
       with:
         name: ${{ format('{0} build {1}', env.DATE, github.run_number) }}
+        body: |
+          ${{ format('Auto-build #{1} at {0} UTC.', env.DATE, github.run_number) }}
+          Builds contain debug symbols are named `*-debug`.
+          **Windows-targetting builds are currently broken.**
         tag_name: auto-build-release
         files: |
-          ~/riscv-*-newlib-multilib.tar.xz
-          ~/riscv-*-newlib-multilib-debug.tar.xz
-          ~/riscv-*-newlib-multilib-windows.zip
-          ~/riscv-*-newlib-multilib-windows-debug.zip
+          ~/artifact/riscv-*-newlib-multilib.tar.xz
+          ~/artifact/riscv-*-newlib-multilib-debug.tar.xz
+          ~/artifact/riscv-*-newlib-multilib-windows.zip
+          ~/artifact/riscv-*-newlib-multilib-windows-debug.zip
