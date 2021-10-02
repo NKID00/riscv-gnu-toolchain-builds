@@ -23,17 +23,17 @@ jobs:
     - name: Archive and compress debug executables
       run: |
         cd /opt/
-        tar -c -I 'xz -9 -T0' -f ${{ format('~/riscv-{0}-newlib-multilib-debug.tar.xz', env.COMMIT_HASH) }} riscv/
+        tar -c -I 'xz -9 -T0' -f ${{ format('~/artifact/riscv-{0}-newlib-multilib-debug.tar.xz', env.COMMIT_HASH) }} riscv/
     - name: Strip executables
       run: sudo find /opt/riscv/ -executable -type f -exec strip {} \;
     - name: Archive and compress executables
       run: |
         cd /opt/
-        tar -c -I 'xz -9 -T0' -f ${{ format('~/riscv-{0}-newlib-multilib.tar.xz', env.COMMIT_HASH) }} riscv/
+        tar -c -I 'xz -9 -T0' -f ${{ format('~/artifact/riscv-{0}-newlib-multilib.tar.xz', env.COMMIT_HASH) }} riscv/
     - name: Upload artifacts
       uses: actions/upload-artifact@v2.2.4
       with:
-        path: ~/riscv-*-newlib-multilib*.tar.xz
+        path: ~/artifact/*
 
   build-windows:
     runs-on: windows-2019
@@ -54,27 +54,34 @@ jobs:
           base-devel
           git
           zip
+    - name: Tweak Mingw-w64
+      run: |
+        # define ushort, uint and ulong in sys/types.h
+        sed -Ei 's/(#endif.*_INC_TYPES)/typedef unsigned short int ushort;\ntypedef unsigned int uint;\ntypedef unsigned long int ulong;\n\n\1/' /mingw64/x86_64-w64-mingw32/include/sys/types.h
     - name: Run configure
       run: ./configure --prefix=/opt/riscv/ --enable-multilib
     - name: Run make
       run: make -j$(nproc --all)
+    - name: Test executables
+      run: /opt/riscv/bin/riscv64-unknown-elf-gcc -v --version
     - name: Get commit hash
       run: echo "COMMIT_HASH=$(git log -1 --pretty='%h')" >> $GITHUB_ENV
     - name: Archive and compress debug executables
       run: |
         cd /opt/
-        zip -9 -r ${{ format('~/riscv-{0}-newlib-multilib-windows-debug.zip', env.COMMIT_HASH) }} riscv/
+        zip -9 -r ${{ format('~/artifact/riscv-{0}-newlib-multilib-windows-debug.zip', env.COMMIT_HASH) }} riscv/
     - name: Strip executables
       run: find /opt/riscv/ -executable -type f -exec strip {} \;
     - name: Archive and compress executables
       run: |
         cd /opt/
-        zip -9 -r ${{ format('~/riscv-{0}-newlib-multilib-windows.zip', env.COMMIT_HASH) }} riscv/
-        realpath ${{ format('~/riscv-{0}-newlib-multilib-windows.zip', env.COMMIT_HASH) }}
+        zip -9 -r ${{ format('~/artifact/riscv-{0}-newlib-multilib-windows.zip', env.COMMIT_HASH) }} riscv/
+    - name: Get path of artifacts
+      run: echo "ARTIFACT_PATH=$(cygpath -alw ~/artifact/)" >> $GITHUB_ENV
     - name: Upload artifacts
       uses: actions/upload-artifact@v2.2.4
       with:
-        path: ~/riscv-*-newlib-multilib-windows*.zip
+        path: ${{ format('{0}*', env.ARTIFACT_PATH) }}
   
   release:
     needs: [build-linux, build-windows]
