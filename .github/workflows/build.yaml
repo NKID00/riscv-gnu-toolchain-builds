@@ -23,6 +23,7 @@ jobs:
     - name: Archive and compress debug executables
       run: |
         cd /opt/
+        mkdir ~/artifact/
         tar -c -I 'xz -9 -T0' -f ${{ format('~/artifact/riscv-{0}-newlib-multilib-debug.tar.xz', env.COMMIT_HASH) }} riscv/
     - name: Strip executables
       run: sudo find /opt/riscv/ -executable -type f -exec strip {} \;
@@ -55,12 +56,59 @@ jobs:
           git
           zip
     - name: Tweak Mingw-w64
+      shell: python
       run: |
-        # define ushort, uint and ulong in sys/types.h
-        sed -Ei 's/(#endif.*_INC_TYPES)/typedef unsigned short int ushort;\ntypedef unsigned int uint;\ntypedef unsigned long int ulong;\n\n\1/' /mingw64/x86_64-w64-mingw32/include/sys/types.h
+        from re import sub
+        # define ushort, uint and ulong
+        path = 'C:/msys64/mingw64/x86_64-w64-mingw32/include/sys/types.h'
+        with open(path, 'r', encoding='utf8') as f:
+            s = f.read()
+        s = sub(
+            r'#endif.*_INC_TYPES',
+            lambda m: f''
+            f'typedef unsigned short int ushort;\n'
+            f'typedef unsigned int uint;\n'
+            f'typedef unsigned long int ulong;\n\n'
+            f'{m.group(0)}',
+            s
+        )
+        with open(path, 'w', encoding='utf8') as f:
+            f.write(s)
     - name: Run configure
       run: ./configure --prefix=/opt/riscv/ --enable-multilib
-    - name: Run make
+    - name: Run make (expected to fail)
+      continue-on-error: true
+      run: make -j$(nproc --all)
+    - name: Get path of home
+      run: echo "HOME_PATH=$(cygpath -alw ~)" >> $GITHUB_ENV
+    - name: Tweak gdb
+      shell: python
+      run: |
+        from os import environ
+        from re import sub, DOTALL
+        # add -fcommon cflag
+        path = f'{environ['HOME_PATH']}riscv-gnu-toolchain/riscv-gdb/readline/readline/Makefile.in'
+        with open(path, 'r', encoding='utf8') as f:
+            s = f.read()
+        s = sub(
+            r'CFLAGS = @CFLAGS@',
+            lambda m: f'{m.group(0)}\nCFLAGS += " -fcommon"',
+            s
+        )
+        with open(path, 'w', encoding='utf8') as f:
+            f.write(s)
+        # link libbcrypt
+        path = f'{environ['HOME_PATH']}riscv-gnu-toolchain/riscv-gdb/gdb/Makefile.in'
+        with open(path, 'r', encoding='utf8') as f:
+            s = f.read()
+        s = sub(
+            r'gdb\$\(EXEEXT\)\:.*?\$\(CC_LD\).*?gdb\.o',
+            lambda m: f'{m.group(0)} -lbcrypt',
+            s, 1, DOTALL
+        )
+        with open(path, 'w', encoding='utf8') as f:
+            f.write(s)
+    - name: Run make again
       run: make -j$(nproc --all)
     - name: Test executables
       run: /opt/riscv/bin/riscv64-unknown-elf-gcc -v --version
@@ -75,9 +123,10 @@ jobs:
     - name: Archive and compress executables
       run: |
         cd /opt/
+        mkdir ~/artifact/
         zip -9 -r ${{ format('~/artifact/riscv-{0}-newlib-multilib-windows.zip', env.COMMIT_HASH) }} riscv/
     - name: Get path of artifacts
-      run: echo "ARTIFACT_PATH=$(cygpath -alw ~/artifact/)" >> $GITHUB_ENV
+      run: echo "ARTIFACT_PATH=$(cygpath -alw ~/artifact)" >> $GITHUB_ENV
     - name: Upload artifacts
       uses: actions/upload-artifact@v2.2.4
       with:
