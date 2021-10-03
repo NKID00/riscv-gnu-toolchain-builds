@@ -58,9 +58,10 @@ jobs:
     - name: Tweak Mingw-w64
       shell: python
       run: |
+        from pathlib import Path
         from re import sub
         # define ushort, uint and ulong
-        path = 'C:/msys64/mingw64/x86_64-w64-mingw32/include/sys/types.h'
+        path = Path('C:/msys64/mingw64/x86_64-w64-mingw32/include/sys/types.h')
         with open(path, 'r', encoding='utf8') as f:
             s = f.read()
         s = sub(
@@ -85,10 +86,11 @@ jobs:
       shell: python
       run: |
         from os import environ
+        from pathlib import Path
         from re import sub, DOTALL
-        home_path = environ['HOME_PATH']
+        home_path = Path(environ['HOME_PATH'])
         # add -fcommon cflag
-        path = f'{home_path}/riscv-gnu-toolchain/riscv-gdb/readline/readline/Makefile.in'
+        path = home_path / 'riscv-gnu-toolchain/riscv-gdb/readline/readline/Makefile.in'
         with open(path, 'r', encoding='utf8') as f:
             s = f.read()
         s = sub(
@@ -99,7 +101,7 @@ jobs:
         with open(path, 'w', encoding='utf8') as f:
             f.write(s)
         # link libbcrypt
-        path = f'{home_path}/riscv-gnu-toolchain/riscv-gdb/gdb/Makefile.in'
+        path = home_path / 'riscv-gnu-toolchain/riscv-gdb/gdb/Makefile.in'
         with open(path, 'r', encoding='utf8') as f:
             s = f.read()
         s = sub(
