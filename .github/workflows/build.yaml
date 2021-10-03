@@ -4,7 +4,7 @@ on:
     - cron: '2 2 * * 2'
   workflow_dispatch:
 jobs:
-  build-linux:
+  build-linux-gdb:
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v2
@@ -14,6 +14,38 @@ jobs:
       run: sudo apt install autoconf automake autotools-dev curl python3 libmpc-dev libmpfr-dev libgmp-dev gawk build-essential bison flex texinfo gperf libtool patchutils bc zlib1g-dev libexpat-dev
     - name: Run configure
       run: sudo ./configure --prefix=/opt/riscv/ --enable-multilib
+    - name: Run make
+      run: sudo make -j$(nproc --all)
+    - name: Test executables
+      run: /opt/riscv/bin/riscv64-unknown-elf-gcc -v --version
+    - name: Get commit hash
+      run: echo "COMMIT_HASH=$(git log -1 --pretty='%h')" >> $GITHUB_ENV
+    - name: Archive and compress debug executables
+      run: |
+        cd /opt/
+        mkdir ~/artifact/
+        tar -c -I 'xz -9 -T0' -f ${{ format('~/artifact/riscv-{0}-newlib-multilib-gdb-debug.tar.xz', env.COMMIT_HASH) }} riscv/
+    - name: Strip executables
+      run: sudo find /opt/riscv/ -executable -type f -exec strip {} \;
+    - name: Archive and compress executables
+      run: |
+        cd /opt/
+        tar -c -I 'xz -9 -T0' -f ${{ format('~/artifact/riscv-{0}-newlib-multilib-gdb.tar.xz', env.COMMIT_HASH) }} riscv/
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2.2.4
+      with:
+        path: ~/artifact/*
+
+  build-linux:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        repository: riscv-collab/riscv-gnu-toolchain
+    - name: Install deps
+      run: sudo apt install autoconf automake autotools-dev curl python3 libmpc-dev libmpfr-dev libgmp-dev gawk build-essential bison flex texinfo gperf libtool patchutils bc zlib1g-dev libexpat-dev
+    - name: Run configure
+      run: sudo ./configure --prefix=/opt/riscv/ --enable-multilib --disable-gdb
     - name: Run make
       run: sudo make -j$(nproc --all)
     - name: Test executables
@@ -36,7 +68,7 @@ jobs:
       with:
         path: ~/artifact/*
 
-  build-windows:
+  build-windows-gdb:
     runs-on: windows-2019
     defaults:
       run:
@@ -76,7 +108,7 @@ jobs:
         with open(path, 'w', encoding='utf8') as f:
             f.write(s)
     - name: Run configure
-      run: ./configure --prefix=/opt/riscv/ --enable-multilib
+      run: ./configure --prefix=/opt/riscv/ --enable-multilib --without-system-zlib
     - name: Run make (expected to fail)
       continue-on-error: true
       run: make -j$(nproc --all)
@@ -144,6 +176,71 @@ jobs:
     - name: Archive and compress debug executables
       run: |
         cd /opt/
+        zip -9 -r ${{ format('~/artifact/riscv-{0}-newlib-multilib-gdb-windows-debug.zip', env.COMMIT_HASH) }} riscv/
+    - name: Strip executables
+      run: find /opt/riscv/ -executable -type f -exec strip {} \;
+    - name: Archive and compress executables
+      run: |
+        cd /opt/
+        mkdir ~/artifact/
+        zip -9 -r ${{ format('~/artifact/riscv-{0}-newlib-multilib-gdb-windows.zip', env.COMMIT_HASH) }} riscv/
+    - name: Get path of artifacts
+      run: echo "ARTIFACT_PATH=$(cygpath -alw ~/artifact)" >> $GITHUB_ENV
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2.2.4
+      with:
+        path: ${{ format('{0}/*', env.ARTIFACT_PATH) }}
+
+  build-windows:
+    runs-on: windows-2019
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        repository: riscv-collab/riscv-gnu-toolchain
+    - name: Install MSYS2 and deps
+      uses: msys2/setup-msys2@v2
+      with:
+        update: true
+        msystem: MINGW64
+        install: >-
+          mingw-w64-x86_64-toolchain
+          base-devel
+          git
+          zip
+    - name: Tweak Mingw-w64
+      shell: python
+      run: |
+        from pathlib import Path
+        from re import sub
+        # define ushort, uint and ulong
+        path = Path('C:/msys64/mingw64/x86_64-w64-mingw32/include/sys/types.h')
+        with open(path, 'r', encoding='utf8') as f:
+            s = f.read()
+        s = sub(
+            r'#endif.*_INC_TYPES',
+            lambda m: f''
+            f'typedef unsigned short int ushort;\n'
+            f'typedef unsigned int uint;\n'
+            f'typedef unsigned long int ulong;\n\n'
+            f'{m.group(0)}',
+            s
+        )
+        with open(path, 'w', encoding='utf8') as f:
+            f.write(s)
+    - name: Run configure
+      run: ./configure --prefix=/opt/riscv/ --enable-multilib --without-system-zlib --disable-gdb
+    - name: Run make
+      run: make -j$(nproc --all)
+    - name: Test executables
+      run: /opt/riscv/bin/riscv64-unknown-elf-gcc -v --version
+    - name: Get commit hash
+      run: echo "COMMIT_HASH=$(git log -1 --pretty='%h')" >> $GITHUB_ENV
+    - name: Archive and compress debug executables
+      run: |
+        cd /opt/
         zip -9 -r ${{ format('~/artifact/riscv-{0}-newlib-multilib-windows-debug.zip', env.COMMIT_HASH) }} riscv/
     - name: Strip executables
       run: find /opt/riscv/ -executable -type f -exec strip {} \;
@@ -158,9 +255,10 @@ jobs:
       uses: actions/upload-artifact@v2.2.4
       with:
         path: ${{ format('{0}/*', env.ARTIFACT_PATH) }}
-  
+
   release:
-    needs: [build-linux, build-windows]
+    needs: [build-linux-gdb, build-linux, build-windows-gdb, build-windows]
+    if: always()
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/download-artifact@v2.0.10
@@ -174,9 +272,15 @@ jobs:
         body: |
           ${{ format('Auto-build #{1} at {0} UTC.', env.DATE, github.run_number) }}
           Builds contain debug symbols are named `*-debug`.
+          Builds contain GDB(The GNU Project Debugger) are named `*-gdb`.
+          Download `riscv-*-newlib-multilib-gdb.tar.xz`(for GNU/Linux) or `riscv-*-newlib-multilib-gdb-windows.zip`(for Windows) if you don't konw what to do.
         tag_name: auto-build-release
         files: |
           ~/artifact/riscv-*-newlib-multilib.tar.xz
           ~/artifact/riscv-*-newlib-multilib-debug.tar.xz
+          ~/artifact/riscv-*-newlib-multilib-gdb.tar.xz
+          ~/artifact/riscv-*-newlib-multilib-gdb-debug.tar.xz
           ~/artifact/riscv-*-newlib-multilib-windows.zip
           ~/artifact/riscv-*-newlib-multilib-windows-debug.zip
+          ~/artifact/riscv-*-newlib-multilib-gdb-windows.zip
+          ~/artifact/riscv-*-newlib-multilib-gdb-windows-debug.zip
