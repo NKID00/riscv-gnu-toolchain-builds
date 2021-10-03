@@ -89,6 +89,7 @@ jobs:
         from pathlib import Path
         from re import sub, DOTALL
         source_path = Path(environ['SOURCE_PATH'])
+
         # add -fcommon cflag
         path = source_path / 'riscv-gdb/readline/readline/Makefile.in'
         with open(path, 'r', encoding='utf8') as f:
@@ -100,6 +101,18 @@ jobs:
         )
         with open(path, 'w', encoding='utf8') as f:
             f.write(s)
+
+        path = source_path / 'build-gdb-newlib/Makefile'
+        with open(path, 'r', encoding='utf8') as f:
+            s = f.read()
+        s = sub(
+            r'(CFLAGS\s*=.*)(\n)',
+            lambda m: f'{m.group(1)} -fcommon{m.group(2)}',
+            s
+        )
+        with open(path, 'w', encoding='utf8') as f:
+            f.write(s)
+
         # link libbcrypt
         path = source_path / 'riscv-gdb/gdb/Makefile.in'
         with open(path, 'r', encoding='utf8') as f:
