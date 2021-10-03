@@ -105,8 +105,8 @@ jobs:
         with open(path, 'r', encoding='utf8') as f:
             s = f.read()
         s = sub(
-            r'gdb\$\(EXEEXT\)\:.*?\$\(CC_LD\).*?gdb\.o',
-            lambda m: f'{m.group(0)} -lbcrypt',
+            r'(gdb\$\(EXEEXT\)\:.*?\$\(CC_LD\).*?)(\n\S)',
+            lambda m: f'{m.group(1)} -lbcrypt{m.group(2)}',
             s, 1, DOTALL
         )
         with open(path, 'w', encoding='utf8') as f:
