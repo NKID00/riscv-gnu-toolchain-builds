@@ -271,8 +271,8 @@ jobs:
         name: ${{ format('{0} build {1}', env.DATE, github.run_number) }}
         body: |
           ${{ format('Auto-build #{1} at {0} UTC.', env.DATE, github.run_number) }}
-          Builds contain debug symbols are named `*-debug`.
-          Builds contain GDB(The GNU Project Debugger) are named `*-gdb`.
+          Artifacts contain debug symbols are named `*-debug`.
+          Artifacts contain GDB(The GNU Project Debugger) are named `*-gdb`.
           Download `riscv-*-newlib-multilib-gdb.tar.xz`(for GNU/Linux) or `riscv-*-newlib-multilib-gdb-windows.zip`(for Windows) if you don't konw what to do.
         tag_name: auto-build-release
         files: |
