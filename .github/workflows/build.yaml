@@ -80,17 +80,17 @@ jobs:
     - name: Run make (expected to fail)
       continue-on-error: true
       run: make -j$(nproc --all)
-    - name: Get path of home
-      run: echo "HOME_PATH=$(cygpath -alw ~)" >> $GITHUB_ENV
+    - name: Get path of sources
+      run: echo "SOURCE_PATH=$(cygpath -alw .)" >> $GITHUB_ENV
     - name: Tweak gdb
       shell: python
       run: |
         from os import environ
         from pathlib import Path
         from re import sub, DOTALL
-        home_path = Path(environ['HOME_PATH'])
+        source_path = Path(environ['SOURCE_PATH'])
         # add -fcommon cflag
-        path = home_path / 'riscv-gnu-toolchain/riscv-gdb/readline/readline/Makefile.in'
+        path = source_path / 'riscv-gdb/readline/readline/Makefile.in'
         with open(path, 'r', encoding='utf8') as f:
             s = f.read()
         s = sub(
@@ -101,7 +101,7 @@ jobs:
         with open(path, 'w', encoding='utf8') as f:
             f.write(s)
         # link libbcrypt
-        path = home_path / 'riscv-gnu-toolchain/riscv-gdb/gdb/Makefile.in'
+        path = source_path / 'riscv-gdb/gdb/Makefile.in'
         with open(path, 'r', encoding='utf8') as f:
             s = f.read()
         s = sub(
