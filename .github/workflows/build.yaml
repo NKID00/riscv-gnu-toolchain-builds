@@ -86,8 +86,9 @@ jobs:
       run: |
         from os import environ
         from re import sub, DOTALL
+        home_path = environ['HOME_PATH']
         # add -fcommon cflag
-        path = f'{environ['HOME_PATH']}riscv-gnu-toolchain/riscv-gdb/readline/readline/Makefile.in'
+        path = f'{home_path}riscv-gnu-toolchain/riscv-gdb/readline/readline/Makefile.in'
         with open(path, 'r', encoding='utf8') as f:
             s = f.read()
         s = sub(
@@ -98,7 +99,7 @@ jobs:
         with open(path, 'w', encoding='utf8') as f:
             f.write(s)
         # link libbcrypt
-        path = f'{environ['HOME_PATH']}riscv-gnu-toolchain/riscv-gdb/gdb/Makefile.in'
+        path = f'{home_path}riscv-gnu-toolchain/riscv-gdb/gdb/Makefile.in'
         with open(path, 'r', encoding='utf8') as f:
             s = f.read()
         s = sub(
