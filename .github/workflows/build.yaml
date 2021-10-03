@@ -150,7 +150,7 @@ jobs:
             s = f.read()
         s = sub(
             r'CFLAGS="\$CFLAGS -O"',
-            lambda m: f'{m.group(1)}\n\nCFLAGS="$CFLAGS -fcommon"',
+            lambda m: f'{m.group(0)}\n\nCFLAGS="$CFLAGS -fcommon"',
             s
         )
         with open(path, 'w', encoding='utf8') as f:
