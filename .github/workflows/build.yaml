@@ -113,6 +113,17 @@ jobs:
         with open(path, 'w', encoding='utf8') as f:
             f.write(s)
 
+        path = source_path / 'riscv-gdb/readline/readline/configure'
+        with open(path, 'r', encoding='utf8') as f:
+            s = f.read()
+        s = sub(
+            r'CFLAGS="\$CFLAGS -O"',
+            lambda m: f'{m.group(1)}\n\nCFLAGS="$CFLAGS -fcommon"',
+            s
+        )
+        with open(path, 'w', encoding='utf8') as f:
+            f.write(s)
+
         # link libbcrypt
         path = source_path / 'riscv-gdb/gdb/Makefile.in'
         with open(path, 'r', encoding='utf8') as f:
