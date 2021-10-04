@@ -10,7 +10,7 @@ GNU/Linux builds are built on Ubuntu 20.04, Windows builds are built on Windows 
 
 Download the latest artifact and simply extract it to anywhere you like.
 
-Artifacts of the latest build can be downloaded in [the release page](https://github.com/NKID00/riscv-gnu-toolchain-builds/releases), previous builds(retained for 90 days) can be found in [each workflow run page](https://github.com/NKID00/riscv-gnu-toolchain-builds/actions).
+Artifacts of the 3 latest builds can be downloaded in [the release page](https://github.com/NKID00/riscv-gnu-toolchain-builds/releases), previous builds(retained for 90 days) can be found in [each workflow run page](https://github.com/NKID00/riscv-gnu-toolchain-builds/actions).
 
 ## Naming conventions
 
