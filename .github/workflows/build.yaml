@@ -96,13 +96,21 @@ jobs:
         path = Path('C:/msys64/mingw64/x86_64-w64-mingw32/include/sys/types.h')
         with open(path, 'r', encoding='utf8') as f:
             s = f.read()
+        def gen_repl(m):
+            repl = (
+                f'typedef unsigned short int ushort;\n'
+                f'typedef unsigned int uint;\n'
+                f'typedef unsigned long int ulong;\n\n'
+                f'{m.group(0)}'
+            )
+            print('** replace:')
+            print(m.group(0))
+            print('** to:')
+            print(repl)
+            return repl
         s = sub(
             r'#endif.*_INC_TYPES',
-            lambda m: f''
-            f'typedef unsigned short int ushort;\n'
-            f'typedef unsigned int uint;\n'
-            f'typedef unsigned long int ulong;\n\n'
-            f'{m.group(0)}',
+            gen_repl,
             s
         )
         with open(path, 'w', encoding='utf8') as f:
@@ -126,9 +134,16 @@ jobs:
         path = source_path / 'riscv-gdb/readline/readline/Makefile.in'
         with open(path, 'r', encoding='utf8') as f:
             s = f.read()
+        def gen_repl(m):
+            repl = f'{m.group(0)}\nCFLAGS += " -fcommon"'
+            print(f'** replace @ "{path}":')
+            print(m.group(0))
+            print('** to:')
+            print(repl)
+            return repl
         s = sub(
             r'CFLAGS = @CFLAGS@',
-            lambda m: f'{m.group(0)}\nCFLAGS += " -fcommon"',
+            gen_repl,
             s
         )
         with open(path, 'w', encoding='utf8') as f:
@@ -137,9 +152,16 @@ jobs:
         path = source_path / 'build-gdb-newlib/Makefile'
         with open(path, 'r', encoding='utf8') as f:
             s = f.read()
+        def gen_repl(m):
+            repl = f'{m.group(1)} -fcommon{m.group(2)}'
+            print(f'** replace @ "{path}":')
+            print(m.group(0))
+            print('** to:')
+            print(repl)
+            return repl
         s = sub(
             r'(CFLAGS\s*=.*)(\n)',
-            lambda m: f'{m.group(1)} -fcommon{m.group(2)}',
+            gen_repl,
             s
         )
         with open(path, 'w', encoding='utf8') as f:
@@ -148,9 +170,16 @@ jobs:
         path = source_path / 'riscv-gdb/readline/readline/configure'
         with open(path, 'r', encoding='utf8') as f:
             s = f.read()
+        def gen_repl(m):
+            repl = f'{m.group(0)}\n\nCFLAGS="$CFLAGS -fcommon"'
+            print(f'** replace @ "{path}":')
+            print(m.group(0))
+            print('** to:')
+            print(repl)
+            return repl
         s = sub(
             r'CFLAGS="\$CFLAGS -O"',
-            lambda m: f'{m.group(0)}\n\nCFLAGS="$CFLAGS -fcommon"',
+            gen_repl,
             s
         )
         with open(path, 'w', encoding='utf8') as f:
@@ -160,9 +189,16 @@ jobs:
         path = source_path / 'riscv-gdb/gdb/Makefile.in'
         with open(path, 'r', encoding='utf8') as f:
             s = f.read()
+        def gen_repl(m):
+            repl = f'{m.group(1)} -lbcrypt{m.group(2)}'
+            print(f'** replace @ "{path}":')
+            print(m.group(0))
+            print('** to:')
+            print(repl)
+            return repl
         s = sub(
             r'(gdb\$\(EXEEXT\)\:.*?\$\(CC_LD\).*?)(\n\S)',
-            lambda m: f'{m.group(1)} -lbcrypt{m.group(2)}',
+            gen_repl,
             s, 1, DOTALL
         )
         with open(path, 'w', encoding='utf8') as f:
@@ -219,13 +255,21 @@ jobs:
         path = Path('C:/msys64/mingw64/x86_64-w64-mingw32/include/sys/types.h')
         with open(path, 'r', encoding='utf8') as f:
             s = f.read()
+        def gen_repl(m):
+            repl = (
+                f'typedef unsigned short int ushort;\n'
+                f'typedef unsigned int uint;\n'
+                f'typedef unsigned long int ulong;\n\n'
+                f'{m.group(0)}'
+            )
+            print(f'** replace @ "{path}":')
+            print(m.group(0))
+            print('** to:')
+            print(repl)
+            return repl
         s = sub(
             r'#endif.*_INC_TYPES',
-            lambda m: f''
-            f'typedef unsigned short int ushort;\n'
-            f'typedef unsigned int uint;\n'
-            f'typedef unsigned long int ulong;\n\n'
-            f'{m.group(0)}',
+            gen_repl,
             s
         )
         with open(path, 'w', encoding='utf8') as f:
@@ -264,6 +308,12 @@ jobs:
     - uses: actions/download-artifact@v2.0.10
       with:
         path: ~/
+    - name: List artifacts
+      run: |
+        ls -alph /home/runner/artifact
+        ls -alph ~/artifact
+        ls -alph /home/runner
+        ls -alph ~
     - name: Get date string
       run: echo "DATE=$(date -u +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_ENV
     - uses: softprops/action-gh-release@v0.1.13
@@ -273,14 +323,7 @@ jobs:
           ${{ format('Auto-build #{1} at {0} UTC.', env.DATE, github.run_number) }}
           Artifacts contain debug symbols are named `*-debug`.
           Artifacts contain GDB(The GNU Project Debugger) are named `*-gdb`.
-          Download `riscv-*-newlib-multilib-gdb.tar.xz`(for GNU/Linux) or `riscv-*-newlib-multilib-gdb-windows.zip`(for Windows) if you don't konw what to do.
+          **Download `riscv-*-newlib-multilib-gdb.tar.xz`(for GNU/Linux) or `riscv-*-newlib-multilib-gdb-windows.zip`(for Windows) if you don't konw what to do.**
         tag_name: auto-build-release
         files: |
-          ~/artifact/riscv-*-newlib-multilib.tar.xz
-          ~/artifact/riscv-*-newlib-multilib-debug.tar.xz
-          ~/artifact/riscv-*-newlib-multilib-gdb.tar.xz
-          ~/artifact/riscv-*-newlib-multilib-gdb-debug.tar.xz
-          ~/artifact/riscv-*-newlib-multilib-windows.zip
-          ~/artifact/riscv-*-newlib-multilib-windows-debug.zip
-          ~/artifact/riscv-*-newlib-multilib-gdb-windows.zip
-          ~/artifact/riscv-*-newlib-multilib-gdb-windows-debug.zip
+          ~/artifact/*
