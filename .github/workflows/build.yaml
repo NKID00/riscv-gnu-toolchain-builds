@@ -87,13 +87,16 @@ jobs:
           base-devel
           git
           zip
+    - name: Get path of headers
+      run: echo "HEADER_PATH=$(cygpath -alw /x86_64-w64-mingw32/include/)" >> $GITHUB_ENV
     - name: Tweak Mingw-w64
       shell: python
       run: |
+        from os import environ
         from pathlib import Path
         from re import sub
         # define ushort, uint and ulong
-        path = Path('C:/msys64/mingw64/x86_64-w64-mingw32/include/sys/types.h')
+        path = Path(environ['HEADER_PATH']) / 'sys/types.h'
         with open(path, 'r', encoding='utf8') as f:
             s = f.read()
         def gen_repl(m):
@@ -103,7 +106,7 @@ jobs:
                 f'typedef unsigned long int ulong;\n\n'
                 f'{m.group(0)}'
             )
-            print('** replace:')
+            print(f'** replace @ "{path}":')
             print(m.group(0))
             print('** to:')
             print(repl)
@@ -246,18 +249,16 @@ jobs:
           base-devel
           git
           zip
-    - name: Debug
-      run: |
-        gcc -Wp,-v -xc /dev/null -fsyntax-only
-        cygpath -alw /usr/include
-        cygpath -alw /usr/local/include
+    - name: Get path of headers
+      run: echo "HEADER_PATH=$(cygpath -alw /x86_64-w64-mingw32/include/)" >> $GITHUB_ENV
     - name: Tweak Mingw-w64
       shell: python
       run: |
+        from os import environ
         from pathlib import Path
         from re import sub
         # define ushort, uint and ulong
-        path = Path('C:/msys64/mingw64/x86_64-w64-mingw32/include/sys/types.h')
+        path = Path(environ['HEADER_PATH']) / 'sys/types.h'
         with open(path, 'r', encoding='utf8') as f:
             s = f.read()
         def gen_repl(m):
