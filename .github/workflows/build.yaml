@@ -260,6 +260,7 @@ jobs:
         echo $(cygpath -alw /mingw64/lib/gcc/x86_64-w64-mingw32/10.3.0/../../../../include)
         echo $(cygpath -alw /mingw64/lib/gcc/x86_64-w64-mingw32/10.3.0/include-fixed)
         echo $(cygpath -alw /mingw64/lib/gcc/x86_64-w64-mingw32/10.3.0/../../../../x86_64-w64-mingw32)
+        find /usr/include -wholename */sys/types.h -print
     - name: Get path of headers
       run: echo "HEADER_PATH=$(cygpath -alw /x86_64-w64-mingw32/include/)" >> $GITHUB_ENV
     - name: Tweak Mingw-w64
