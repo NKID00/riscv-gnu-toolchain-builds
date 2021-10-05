@@ -252,14 +252,14 @@ jobs:
     - name: Debug
       run: |
         gcc -Wp,-v -xc /dev/null -fsyntax-only
-        cat /mingw64/lib/gcc/x86_64-w64-mingw32/10.3.0/include/sys/types.h
-        cat /mingw64/lib/gcc/x86_64-w64-mingw32/10.3.0/../../../../include/sys/types.h
-        cat /mingw64/lib/gcc/x86_64-w64-mingw32/10.3.0/include-fixed/sys/types.h
-        cat /mingw64/lib/gcc/x86_64-w64-mingw32/10.3.0/../../../../x86_64-w64-mingw32/sys/types.h
-        cygpath -alw /mingw64/lib/gcc/x86_64-w64-mingw32/10.3.0/include
-        cygpath -alw /mingw64/lib/gcc/x86_64-w64-mingw32/10.3.0/../../../../include
-        cygpath -alw /mingw64/lib/gcc/x86_64-w64-mingw32/10.3.0/include-fixed
-        cygpath -alw /mingw64/lib/gcc/x86_64-w64-mingw32/10.3.0/../../../../x86_64-w64-mingw32
+        echo $(cat /mingw64/lib/gcc/x86_64-w64-mingw32/10.3.0/include/sys/types.h)
+        echo $(cat /mingw64/lib/gcc/x86_64-w64-mingw32/10.3.0/../../../../include/sys/types.h)
+        echo $(cat /mingw64/lib/gcc/x86_64-w64-mingw32/10.3.0/include-fixed/sys/types.h)
+        echo $(cat /mingw64/lib/gcc/x86_64-w64-mingw32/10.3.0/../../../../x86_64-w64-mingw32/sys/types.h)
+        echo $(cygpath -alw /mingw64/lib/gcc/x86_64-w64-mingw32/10.3.0/include)
+        echo $(cygpath -alw /mingw64/lib/gcc/x86_64-w64-mingw32/10.3.0/../../../../include)
+        echo $(cygpath -alw /mingw64/lib/gcc/x86_64-w64-mingw32/10.3.0/include-fixed)
+        echo $(cygpath -alw /mingw64/lib/gcc/x86_64-w64-mingw32/10.3.0/../../../../x86_64-w64-mingw32)
     - name: Get path of headers
       run: echo "HEADER_PATH=$(cygpath -alw /x86_64-w64-mingw32/include/)" >> $GITHUB_ENV
     - name: Tweak Mingw-w64
@@ -319,7 +319,7 @@ jobs:
 
   release:
     needs: [build-linux-gdb, build-linux, build-windows-gdb, build-windows]
-    if: always()
+    if: '!cancelled()'
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/download-artifact@v2.0.10
