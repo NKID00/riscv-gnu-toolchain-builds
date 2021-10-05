@@ -3,6 +3,7 @@ on:
   schedule:
     - cron: '2 2 * * 2'
   workflow_dispatch:
+  push:
 jobs:
   build-linux-gdb:
     runs-on: ubuntu-20.04
@@ -88,7 +89,7 @@ jobs:
           git
           zip
     - name: Get path of headers
-      run: echo "HEADER_PATH=$(cygpath -alw /x86_64-w64-mingw32/include/)" >> $GITHUB_ENV
+      run: echo "HEADER_PATH=$(cygpath -alw /mingw64/x86_64-w64-mingw32/include)" >> $GITHUB_ENV
     - name: Tweak Mingw-w64
       shell: python
       run: |
@@ -249,22 +250,8 @@ jobs:
           base-devel
           git
           zip
-    - name: Debug
-      run: |
-        gcc -Wp,-v -xc /dev/null -fsyntax-only
-        echo $(cat /mingw64/lib/gcc/x86_64-w64-mingw32/10.3.0/include/sys/types.h)
-        echo $(cat /mingw64/lib/gcc/x86_64-w64-mingw32/10.3.0/../../../../include/sys/types.h)
-        echo $(cat /mingw64/lib/gcc/x86_64-w64-mingw32/10.3.0/include-fixed/sys/types.h)
-        echo $(cat /mingw64/lib/gcc/x86_64-w64-mingw32/10.3.0/../../../../x86_64-w64-mingw32/sys/types.h)
-        echo $(cygpath -alw /mingw64/lib/gcc/x86_64-w64-mingw32/10.3.0/include)
-        echo $(cygpath -alw /mingw64/lib/gcc/x86_64-w64-mingw32/10.3.0/../../../../include)
-        echo $(cygpath -alw /mingw64/lib/gcc/x86_64-w64-mingw32/10.3.0/include-fixed)
-        echo $(cygpath -alw /mingw64/lib/gcc/x86_64-w64-mingw32/10.3.0/../../../../x86_64-w64-mingw32)
-        echo $(find / -wholename */sys/types.h -print)
-        echo $(cat /mingw64/x86_64-w64-mingw32/include/sys/types.h)
-        echo $(cygpath -alw /mingw64/x86_64-w64-mingw32/include)
     - name: Get path of headers
-      run: echo "HEADER_PATH=$(cygpath -alw /x86_64-w64-mingw32/include/)" >> $GITHUB_ENV
+      run: echo "HEADER_PATH=$(cygpath -alw /mingw64/x86_64-w64-mingw32/include)" >> $GITHUB_ENV
     - name: Tweak Mingw-w64
       shell: python
       run: |
