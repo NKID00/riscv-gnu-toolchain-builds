@@ -2,7 +2,7 @@
 
 GNU/Linux and Windows builds of the latest commit on master branch of [riscv-gnu-toolchain](https://github.com/riscv-collab/riscv-gnu-toolchain).
 
-Builds run automatically at 02:02 UTC on every Tuesday.
+Builds run automatically at 02:02 UTC every day.
 
 GNU/Linux builds are built on Ubuntu 20.04, Windows builds are built on Windows Server 2019 using Mingw-w64 on MSYS2.
 
@@ -18,4 +18,4 @@ Artifacts contain debug symbols are named `*-debug`.
 
 Artifacts contain GDB(The GNU Project Debugger) are named `*-gdb`.
 
-Download `riscv-*-newlib-multilib-gdb.tar.xz`(for GNU/Linux) or `riscv-*-newlib-multilib-gdb-windows.zip`(for Windows) if you don't konw what to do.
+Download `riscv-*-newlib-multilib-gdb.tar.xz`(for GNU/Linux) or `riscv-*-newlib-multilib-gdb-windows.zip`(for Windows) if you don't know what to do.

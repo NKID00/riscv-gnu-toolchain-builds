@@ -1,7 +1,7 @@
 name: Build and release
 on:
   schedule:
-    - cron: '2 2 * * 2'
+    - cron: '2 2 * * *'
   workflow_dispatch:
   push:
 jobs:
@@ -335,7 +335,7 @@ jobs:
           ${{ format('Auto-build #{1} at {0} UTC.', env.DATE, github.run_number) }}
           Artifacts contain debug symbols are named `*-debug`.
           Artifacts contain GDB(The GNU Project Debugger) are named `*-gdb`.
-          **Download `riscv-*-newlib-multilib-gdb.tar.xz`(for GNU/Linux) or `riscv-*-newlib-multilib-gdb-windows.zip`(for Windows) if you don't konw what to do.**
+          **Download `riscv-*-newlib-multilib-gdb.tar.xz`(for GNU/Linux) or `riscv-*-newlib-multilib-gdb-windows.zip`(for Windows) if you don't know what to do.**
         tag_name: ${{ format('build-{0}', github.run_number) }}
         files: |
           ${{ format('{0}/riscv-*-newlib-multilib-gdb.tar.xz', env.ARTIFACT_PATH) }}
