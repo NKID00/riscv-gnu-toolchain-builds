@@ -75,9 +75,9 @@ jobs:
       run:
         shell: msys2 {0}
     steps:
-    - uses: actions/checkout@v2
-      with:
-        repository: riscv-collab/riscv-gnu-toolchain
+    - name: Checkout
+      run: git clone https://github.com/riscv-collab/riscv-gnu-toolchain.git --depth=1 C:\a\
+      shell: pwsh
     - name: Install MSYS2 and deps
       uses: msys2/setup-msys2@v2
       with:
@@ -121,18 +121,18 @@ jobs:
             f.write(s)
     - name: Run configure
       run: ./configure --prefix=/opt/riscv/ --enable-multilib
+      working-directory: C:\a
     - name: Run make (expected to fail)
       continue-on-error: true
       run: make -j$(nproc --all)
-    - name: Get path of sources
-      run: echo "SOURCE_PATH=$(cygpath -alw .)" >> $GITHUB_ENV
+      working-directory: C:\a
     - name: Tweak gdb
       shell: python
       run: |
         from os import environ
         from pathlib import Path
         from re import sub, DOTALL
-        source_path = Path(environ['SOURCE_PATH'])
+        source_path = Path(r'C:\a')
 
         # add -fcommon cflag
         path = source_path / 'riscv-gdb/readline/readline/Makefile.in'
@@ -209,10 +209,12 @@ jobs:
             f.write(s)
     - name: Run make again
       run: make -j$(nproc --all)
+      working-directory: C:\a
     - name: Test executables
       run: /opt/riscv/bin/riscv64-unknown-elf-gcc -v --version
     - name: Get commit hash
       run: echo "COMMIT_HASH=$(git log -1 --pretty='%h')" >> $GITHUB_ENV
+      working-directory: C:\a
     - name: Archive and compress debug executables
       run: |
         cd /opt/
@@ -237,9 +239,9 @@ jobs:
       run:
         shell: msys2 {0}
     steps:
-    - uses: actions/checkout@v2
-      with:
-        repository: riscv-collab/riscv-gnu-toolchain
+    - name: Checkout
+      run: git clone https://github.com/riscv-collab/riscv-gnu-toolchain.git --depth=1 C:\a\
+      shell: pwsh
     - name: Install MSYS2 and deps
       uses: msys2/setup-msys2@v2
       with:
@@ -283,12 +285,15 @@ jobs:
             f.write(s)
     - name: Run configure
       run: ./configure --prefix=/opt/riscv/ --enable-multilib --disable-gdb
+      working-directory: C:\a
     - name: Run make
       run: make -j$(nproc --all)
+      working-directory: C:\a
     - name: Test executables
       run: /opt/riscv/bin/riscv64-unknown-elf-gcc -v --version
     - name: Get commit hash
       run: echo "COMMIT_HASH=$(git log -1 --pretty='%h')" >> $GITHUB_ENV
+      working-directory: C:\a
     - name: Archive and compress debug executables
       run: |
         cd /opt/
@@ -333,7 +338,14 @@ jobs:
           **Download `riscv-*-newlib-multilib-gdb.tar.xz`(for GNU/Linux) or `riscv-*-newlib-multilib-gdb-windows.zip`(for Windows) if you don't konw what to do.**
         tag_name: ${{ format('build-{0}', github.run_number) }}
         files: |
-          ${{ format('{0}/*', env.ARTIFACT_PATH) }}
+          ${{ format('{0}/riscv-*-newlib-multilib-gdb.tar.xz', env.ARTIFACT_PATH) }}
+          ${{ format('{0}/riscv-*-newlib-multilib.tar.xz', env.ARTIFACT_PATH) }}
+          ${{ format('{0}/riscv-*-newlib-multilib-gdb-windows.zip', env.ARTIFACT_PATH) }}
+          ${{ format('{0}/riscv-*-newlib-multilib-windows.zip', env.ARTIFACT_PATH) }}
+          ${{ format('{0}/riscv-*-newlib-multilib-gdb-debug.tar.xz', env.ARTIFACT_PATH) }}
+          ${{ format('{0}/riscv-*-newlib-multilib-debug.tar.xz', env.ARTIFACT_PATH) }}
+          ${{ format('{0}/riscv-*-newlib-multilib-gdb-windows-debug.zip', env.ARTIFACT_PATH) }}
+          ${{ format('{0}/riscv-*-newlib-multilib-windows-debug.zip', env.ARTIFACT_PATH) }}
     - uses: dev-drprasad/delete-older-releases@v0.2.0
       with:
         keep_latest: 3
