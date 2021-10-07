@@ -218,13 +218,13 @@ jobs:
     - name: Archive and compress debug executables
       run: |
         cd /opt/
+        mkdir ~/artifact/
         zip -9 -r ${{ format('~/artifact/riscv-{0}-newlib-multilib-gdb-windows-debug.zip', env.COMMIT_HASH) }} riscv/
     - name: Strip executables
       run: find /opt/riscv/ -executable -type f -exec strip {} \;
     - name: Archive and compress executables
       run: |
         cd /opt/
-        mkdir ~/artifact/
         zip -9 -r ${{ format('~/artifact/riscv-{0}-newlib-multilib-gdb-windows.zip', env.COMMIT_HASH) }} riscv/
     - name: Get path of artifacts
       run: echo "ARTIFACT_PATH=$(cygpath -alw ~/artifact)" >> $GITHUB_ENV
@@ -297,13 +297,13 @@ jobs:
     - name: Archive and compress debug executables
       run: |
         cd /opt/
+        mkdir ~/artifact/
         zip -9 -r ${{ format('~/artifact/riscv-{0}-newlib-multilib-windows-debug.zip', env.COMMIT_HASH) }} riscv/
     - name: Strip executables
       run: find /opt/riscv/ -executable -type f -exec strip {} \;
     - name: Archive and compress executables
       run: |
         cd /opt/
-        mkdir ~/artifact/
         zip -9 -r ${{ format('~/artifact/riscv-{0}-newlib-multilib-windows.zip', env.COMMIT_HASH) }} riscv/
     - name: Get path of artifacts
       run: echo "ARTIFACT_PATH=$(cygpath -alw ~/artifact)" >> $GITHUB_ENV
