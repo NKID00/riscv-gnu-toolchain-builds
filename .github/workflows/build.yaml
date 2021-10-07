@@ -174,6 +174,11 @@ jobs:
     - name: Run make again
       run: make -j$(nproc --all)
       working-directory: C:\a
+    - name: Copy dependencies
+      run: |
+        cp /mingw64/bin/{libiconv-2.dll,libintl-8.dll,libwinpthread-1.dll} /opt/riscv/bin
+        cp /mingw64/bin/{libiconv-2.dll,libwinpthread-1.dll,libgmp-10.dll,libzstd.dll,zlib1.dll} $(ls -d /opt/riscv/libexec/gcc/riscv64-unknown-elf/*)
+        cp /mingw64/bin/{libiconv-2.dll,libintl-8.dll} /opt/riscv/riscv64-unknown-elf/bin
     - name: Test executables
       run: /opt/riscv/bin/riscv64-unknown-elf-gcc -v --version
     - name: Get commit hash
@@ -253,6 +258,11 @@ jobs:
     - name: Run make
       run: make -j$(nproc --all)
       working-directory: C:\a
+    - name: Copy dependencies
+      run: |
+        cp /mingw64/bin/{libiconv-2.dll,libintl-8.dll,libwinpthread-1.dll} /opt/riscv/bin
+        cp /mingw64/bin/{libiconv-2.dll,libwinpthread-1.dll,libgmp-10.dll,libzstd.dll,zlib1.dll} $(ls -d /opt/riscv/libexec/gcc/riscv64-unknown-elf/*)
+        cp /mingw64/bin/{libiconv-2.dll,libintl-8.dll} /opt/riscv/riscv64-unknown-elf/bin
     - name: Test executables
       run: /opt/riscv/bin/riscv64-unknown-elf-gcc -v --version
     - name: Get commit hash
