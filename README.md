@@ -18,4 +18,6 @@ Artifacts contain debug symbols are named `*-debug`.
 
 Artifacts contain GDB(The GNU Project Debugger) are named `*-gdb`.
 
-Download `riscv-*-newlib-multilib-gdb.tar.xz`(for GNU/Linux) or `riscv-*-newlib-multilib-gdb-windows.zip`(for Windows) if you don't know what to do.
+GDB builds for Windows are currently broken.
+
+Download `riscv-*-newlib-multilib-gdb.tar.xz`(for GNU/Linux) or `riscv-*-newlib-multilib-windows.zip`(for Windows) if you don't know what to do.

@@ -309,17 +309,10 @@ jobs:
           ${{ format('Auto-build #{1} at {0} UTC.', env.DATE, github.run_number) }}
           Artifacts contain debug symbols are named `*-debug`.
           Artifacts contain GDB(The GNU Project Debugger) are named `*-gdb`.
-          **Download `riscv-*-newlib-multilib-gdb.tar.xz`(for GNU/Linux) or `riscv-*-newlib-multilib-gdb-windows.zip`(for Windows) if you don't know what to do.**
+          GDB builds for Windows are currently broken.
+          **Download `riscv-*-newlib-multilib-gdb.tar.xz`(for GNU/Linux) or `riscv-*-newlib-multilib-windows.zip`(for Windows) if you don't know what to do.**
         tag_name: ${{ format('build-{0}', github.run_number) }}
-        files: |
-          ${{ format('{0}/riscv-*-newlib-multilib-gdb.tar.xz', env.ARTIFACT_PATH) }}
-          ${{ format('{0}/riscv-*-newlib-multilib.tar.xz', env.ARTIFACT_PATH) }}
-          ${{ format('{0}/riscv-*-newlib-multilib-gdb-windows.zip', env.ARTIFACT_PATH) }}
-          ${{ format('{0}/riscv-*-newlib-multilib-windows.zip', env.ARTIFACT_PATH) }}
-          ${{ format('{0}/riscv-*-newlib-multilib-gdb-debug.tar.xz', env.ARTIFACT_PATH) }}
-          ${{ format('{0}/riscv-*-newlib-multilib-debug.tar.xz', env.ARTIFACT_PATH) }}
-          ${{ format('{0}/riscv-*-newlib-multilib-gdb-windows-debug.zip', env.ARTIFACT_PATH) }}
-          ${{ format('{0}/riscv-*-newlib-multilib-windows-debug.zip', env.ARTIFACT_PATH) }}
+        files: ${{ format('{0}/*', env.ARTIFACT_PATH) }}
     - uses: dev-drprasad/delete-older-releases@v0.2.0
       with:
         keep_latest: 3
