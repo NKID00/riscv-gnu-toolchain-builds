@@ -135,25 +135,7 @@ jobs:
         source_path = Path(r'C:\a')
 
         # add -fcommon cflag
-        path = source_path / 'riscv-gdb/readline/readline/Makefile.in'
-        with open(path, 'r', encoding='utf8') as f:
-            s = f.read()
-        def gen_repl(m):
-            repl = f'{m.group(0)}\nCFLAGS += " -fcommon"'
-            print(f'** replace @ "{path}":')
-            print(m.group(0))
-            print('** to:')
-            print(repl)
-            return repl
-        s = sub(
-            r'CFLAGS = @CFLAGS@',
-            gen_repl,
-            s
-        )
-        with open(path, 'w', encoding='utf8') as f:
-            f.write(s)
-
-        path = source_path / 'build-gdb-newlib/Makefile'
+        path = source_path / 'build-gdb-newlib/readline/readline/Makefile'
         with open(path, 'r', encoding='utf8') as f:
             s = f.read()
         def gen_repl(m):
@@ -165,24 +147,6 @@ jobs:
             return repl
         s = sub(
             r'(CFLAGS\s*=.*)(\n)',
-            gen_repl,
-            s
-        )
-        with open(path, 'w', encoding='utf8') as f:
-            f.write(s)
-
-        path = source_path / 'riscv-gdb/readline/readline/configure'
-        with open(path, 'r', encoding='utf8') as f:
-            s = f.read()
-        def gen_repl(m):
-            repl = f'{m.group(0)}\n\nCFLAGS="$CFLAGS -fcommon"'
-            print(f'** replace @ "{path}":')
-            print(m.group(0))
-            print('** to:')
-            print(repl)
-            return repl
-        s = sub(
-            r'CFLAGS="\$CFLAGS -O"',
             gen_repl,
             s
         )
