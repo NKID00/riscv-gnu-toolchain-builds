@@ -69,138 +69,138 @@ jobs:
       with:
         path: ~/artifact/*
 
-  build-windows-gdb:
-    runs-on: windows-2019
-    defaults:
-      run:
-        shell: msys2 {0}
-    steps:
-    - name: Checkout
-      run: git clone https://github.com/riscv-collab/riscv-gnu-toolchain.git --depth=1 C:\a\
-      shell: pwsh
-    - name: Install MSYS2 and deps
-      uses: msys2/setup-msys2@v2
-      with:
-        update: true
-        msystem: MINGW64
-        install: >-
-          mingw-w64-x86_64-toolchain
-          base-devel
-          git
-          zip
-    - name: Get path of headers
-      run: echo "HEADER_PATH=$(cygpath -alw /mingw64/x86_64-w64-mingw32/include)" >> $GITHUB_ENV
-    - name: Tweak Mingw-w64
-      shell: python
-      run: |
-        from os import environ
-        from pathlib import Path
-        from re import sub
-        # define ushort, uint and ulong
-        path = Path(environ['HEADER_PATH']) / 'sys/types.h'
-        with open(path, 'r', encoding='utf8') as f:
-            s = f.read()
-        def gen_repl(m):
-            repl = (
-                f'typedef unsigned short int ushort;\n'
-                f'typedef unsigned int uint;\n'
-                f'typedef unsigned long int ulong;\n\n'
-                f'{m.group(0)}'
-            )
-            print(f'** replace @ "{path}":')
-            print(m.group(0))
-            print('** to:')
-            print(repl)
-            return repl
-        s = sub(
-            r'#endif.*_INC_TYPES',
-            gen_repl,
-            s
-        )
-        with open(path, 'w', encoding='utf8') as f:
-            f.write(s)
-    - name: Run configure
-      run: ./configure --prefix=/opt/riscv/ --enable-multilib
-      working-directory: C:\a
-    - name: Run make (expected to fail)
-      continue-on-error: true
-      run: make -j$(nproc --all)
-      working-directory: C:\a
-    - name: Tweak gdb
-      shell: python
-      run: |
-        from os import environ
-        from pathlib import Path
-        from re import sub, DOTALL
-        source_path = Path(r'C:\a')
+  # build-windows-gdb:
+  #   runs-on: windows-2019
+  #   defaults:
+  #     run:
+  #       shell: msys2 {0}
+  #   steps:
+  #   - name: Checkout
+  #     run: git clone https://github.com/riscv-collab/riscv-gnu-toolchain.git --depth=1 C:\a\
+  #     shell: pwsh
+  #   - name: Install MSYS2 and deps
+  #     uses: msys2/setup-msys2@v2
+  #     with:
+  #       update: true
+  #       msystem: MINGW64
+  #       install: >-
+  #         mingw-w64-x86_64-toolchain
+  #         base-devel
+  #         git
+  #         zip
+  #   - name: Get path of headers
+  #     run: echo "HEADER_PATH=$(cygpath -alw /mingw64/x86_64-w64-mingw32/include)" >> $GITHUB_ENV
+  #   - name: Tweak Mingw-w64
+  #     shell: python
+  #     run: |
+  #       from os import environ
+  #       from pathlib import Path
+  #       from re import sub
+  #       # define ushort, uint and ulong
+  #       path = Path(environ['HEADER_PATH']) / 'sys/types.h'
+  #       with open(path, 'r', encoding='utf8') as f:
+  #           s = f.read()
+  #       def gen_repl(m):
+  #           repl = (
+  #               f'typedef unsigned short int ushort;\n'
+  #               f'typedef unsigned int uint;\n'
+  #               f'typedef unsigned long int ulong;\n\n'
+  #               f'{m.group(0)}'
+  #           )
+  #           print(f'** replace @ "{path}":')
+  #           print(m.group(0))
+  #           print('** to:')
+  #           print(repl)
+  #           return repl
+  #       s = sub(
+  #           r'#endif.*_INC_TYPES',
+  #           gen_repl,
+  #           s
+  #       )
+  #       with open(path, 'w', encoding='utf8') as f:
+  #           f.write(s)
+  #   - name: Run configure
+  #     run: ./configure --prefix=/opt/riscv/ --enable-multilib
+  #     working-directory: C:\a
+  #   - name: Run make (expected to fail)
+  #     continue-on-error: true
+  #     run: make -j$(nproc --all)
+  #     working-directory: C:\a
+  #   - name: Tweak gdb
+  #     shell: python
+  #     run: |
+  #       from os import environ
+  #       from pathlib import Path
+  #       from re import sub, DOTALL
+  #       source_path = Path(r'C:\a')
 
-        # add -fcommon cflag
-        path = source_path / 'build-gdb-newlib/readline/readline/Makefile'
-        with open(path, 'r', encoding='utf8') as f:
-            s = f.read()
-        def gen_repl(m):
-            repl = f'{m.group(1)} -fcommon{m.group(2)}'
-            print(f'** replace @ "{path}":')
-            print(m.group(0))
-            print('** to:')
-            print(repl)
-            return repl
-        s = sub(
-            r'(CFLAGS\s*=.*)(\n)',
-            gen_repl,
-            s
-        )
-        with open(path, 'w', encoding='utf8') as f:
-            f.write(s)
+  #       # add -fcommon cflag
+  #       path = source_path / 'build-gdb-newlib/readline/readline/Makefile'
+  #       with open(path, 'r', encoding='utf8') as f:
+  #           s = f.read()
+  #       def gen_repl(m):
+  #           repl = f'{m.group(1)} -fcommon{m.group(2)}'
+  #           print(f'** replace @ "{path}":')
+  #           print(m.group(0))
+  #           print('** to:')
+  #           print(repl)
+  #           return repl
+  #       s = sub(
+  #           r'(CFLAGS\s*=.*)(\n)',
+  #           gen_repl,
+  #           s
+  #       )
+  #       with open(path, 'w', encoding='utf8') as f:
+  #           f.write(s)
 
-        # link libbcrypt
-        path = source_path / 'riscv-gdb/gdb/Makefile.in'
-        with open(path, 'r', encoding='utf8') as f:
-            s = f.read()
-        def gen_repl(m):
-            repl = f'{m.group(1)} -lbcrypt{m.group(2)}'
-            print(f'** replace @ "{path}":')
-            print(m.group(0))
-            print('** to:')
-            print(repl)
-            return repl
-        s = sub(
-            r'(gdb\$\(EXEEXT\)\:.*?\$\(CC_LD\).*?)(\n\S)',
-            gen_repl,
-            s, 1, DOTALL
-        )
-        with open(path, 'w', encoding='utf8') as f:
-            f.write(s)
-    - name: Run make again
-      run: make -j$(nproc --all)
-      working-directory: C:\a
-    - name: Copy dependencies
-      run: |
-        cp /mingw64/bin/{libiconv-2.dll,libintl-8.dll,libwinpthread-1.dll} /opt/riscv/bin
-        cp /mingw64/bin/{libiconv-2.dll,libwinpthread-1.dll,libgmp-10.dll,libzstd.dll,zlib1.dll} $(ls -d /opt/riscv/libexec/gcc/riscv64-unknown-elf/*)
-        cp /mingw64/bin/{libiconv-2.dll,libintl-8.dll} /opt/riscv/riscv64-unknown-elf/bin
-    - name: Test executables
-      run: /opt/riscv/bin/riscv64-unknown-elf-gcc -v --version
-    - name: Get commit hash
-      run: echo "COMMIT_HASH=$(git log -1 --pretty='%h')" >> $GITHUB_ENV
-      working-directory: C:\a
-    - name: Archive and compress debug executables
-      run: |
-        cd /opt/
-        mkdir ~/artifact/
-        zip -9 -r ${{ format('~/artifact/riscv-{0}-newlib-multilib-gdb-windows-debug.zip', env.COMMIT_HASH) }} riscv/
-    - name: Strip executables
-      run: find /opt/riscv/ -executable -type f -exec strip {} \;
-    - name: Archive and compress executables
-      run: |
-        cd /opt/
-        zip -9 -r ${{ format('~/artifact/riscv-{0}-newlib-multilib-gdb-windows.zip', env.COMMIT_HASH) }} riscv/
-    - name: Get path of artifacts
-      run: echo "ARTIFACT_PATH=$(cygpath -alw ~/artifact)" >> $GITHUB_ENV
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v2.2.4
-      with:
-        path: ${{ format('{0}/*', env.ARTIFACT_PATH) }}
+  #       # link libbcrypt
+  #       path = source_path / 'riscv-gdb/gdb/Makefile.in'
+  #       with open(path, 'r', encoding='utf8') as f:
+  #           s = f.read()
+  #       def gen_repl(m):
+  #           repl = f'{m.group(1)} -lbcrypt{m.group(2)}'
+  #           print(f'** replace @ "{path}":')
+  #           print(m.group(0))
+  #           print('** to:')
+  #           print(repl)
+  #           return repl
+  #       s = sub(
+  #           r'(gdb\$\(EXEEXT\)\:.*?\$\(CC_LD\).*?)(\n\S)',
+  #           gen_repl,
+  #           s, 1, DOTALL
+  #       )
+  #       with open(path, 'w', encoding='utf8') as f:
+  #           f.write(s)
+  #   - name: Run make again
+  #     run: make -j$(nproc --all)
+  #     working-directory: C:\a
+  #   - name: Copy dependencies
+  #     run: |
+  #       cp /mingw64/bin/{libiconv-2.dll,libintl-8.dll,libwinpthread-1.dll} /opt/riscv/bin
+  #       cp /mingw64/bin/{libiconv-2.dll,libwinpthread-1.dll,libgmp-10.dll,libzstd.dll,zlib1.dll} $(ls -d /opt/riscv/libexec/gcc/riscv64-unknown-elf/*)
+  #       cp /mingw64/bin/{libiconv-2.dll,libintl-8.dll} /opt/riscv/riscv64-unknown-elf/bin
+  #   - name: Test executables
+  #     run: /opt/riscv/bin/riscv64-unknown-elf-gcc -v --version
+  #   - name: Get commit hash
+  #     run: echo "COMMIT_HASH=$(git log -1 --pretty='%h')" >> $GITHUB_ENV
+  #     working-directory: C:\a
+  #   - name: Archive and compress debug executables
+  #     run: |
+  #       cd /opt/
+  #       mkdir ~/artifact/
+  #       zip -9 -r ${{ format('~/artifact/riscv-{0}-newlib-multilib-gdb-windows-debug.zip', env.COMMIT_HASH) }} riscv/
+  #   - name: Strip executables
+  #     run: find /opt/riscv/ -executable -type f -exec strip {} \;
+  #   - name: Archive and compress executables
+  #     run: |
+  #       cd /opt/
+  #       zip -9 -r ${{ format('~/artifact/riscv-{0}-newlib-multilib-gdb-windows.zip', env.COMMIT_HASH) }} riscv/
+  #   - name: Get path of artifacts
+  #     run: echo "ARTIFACT_PATH=$(cygpath -alw ~/artifact)" >> $GITHUB_ENV
+  #   - name: Upload artifacts
+  #     uses: actions/upload-artifact@v2.2.4
+  #     with:
+  #       path: ${{ format('{0}/*', env.ARTIFACT_PATH) }}
 
   build-windows:
     runs-on: windows-2019
@@ -287,7 +287,11 @@ jobs:
         path: ${{ format('{0}/*', env.ARTIFACT_PATH) }}
 
   release:
-    needs: [build-linux-gdb, build-linux, build-windows-gdb, build-windows]
+    needs: [
+      build-linux-gdb, build-linux,
+      # build-windows-gdb,
+      build-windows
+    ]
     if: '!cancelled()'
     runs-on: ubuntu-20.04
     steps:
