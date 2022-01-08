@@ -219,6 +219,9 @@ jobs:
         install: >-
           mingw-w64-x86_64-toolchain
           base-devel
+          autoconf
+          automake
+          libtool
           git
           zip
     - name: Get path of headers
