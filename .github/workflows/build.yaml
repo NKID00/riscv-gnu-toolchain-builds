@@ -225,7 +225,7 @@ jobs:
           git
           zip
     - name: Get path of headers
-      run: echo "HEADER_PATH=$(cygpath -alw /mingw64/x86_64-w64-mingw32/include)" >> $GITHUB_ENV
+      run: echo "HEADER_PATH=$(cygpath -alw /mingw64/include)" >> $GITHUB_ENV
     - name: Tweak Mingw-w64
       shell: python
       run: |
