@@ -315,8 +315,7 @@ jobs:
         body: |
           ${{ format('Auto-build #{1} at {0} UTC.', env.DATE, github.run_number) }}
           Artifacts contain debug symbols are named `*-debug`.
-          Artifacts contain GDB(The GNU Project Debugger) are named `*-gdb`.
-          GDB builds for Windows are currently broken.
+          Artifacts contain GDB are named `*-gdb`. GDB builds for Windows are currently broken.
           **Download `riscv-*-newlib-multilib-gdb.tar.xz`(for GNU/Linux) or `riscv-*-newlib-multilib-windows.zip`(for Windows) if you don't know what to do.**
         tag_name: ${{ format('build-{0}', github.run_number) }}
         files: ${{ format('{0}/*', env.ARTIFACT_PATH) }}
